@@ -42,29 +42,6 @@ def get_all_path(ps):
         d[path].append((text, url))
         return d
 
-#小青获取最优路径
-def get_best_path_by_xiaoqing(d):
-    # 便利所有路径，选择文本内容最多的路径作为新闻列表的路径
-    for k,v in d.items():
-        print(k,v)
-
-    best_k = ''
-    best_v = ''
-    for k,v in d.items():
-        text = ' '.join(e[0] for e in v)
-        if len(text) > len(best_v):
-            best_k = k
-            best_v = text
-
-    for e in d[best_k]:
-        print(e[0],e[1])
-    best_k = best_k.split()
-    best_k.reverse()
-    best_path = "".join(best_k)
-    end_path = best_path+"/a/@href"
-    print("best_path")
-    print(end_path)
-    return end_path
 
 #从k值变成xpath字符串
 def k_to_xpath(k):
