@@ -7,14 +7,44 @@ import re
 from urllib.parse import urljoin
 import sys
 import time
+from selenium import webdriver
+
+def get_driver():
+    options = webdriver.ChromeOptions()
+    # 设置为开发者模式，防止网站识别
+    options.add_experimental_option('excludeSwitches', ['enable-automation'])
+    options.add_experimental_option("useAutomationExtension", False)
+    options.add_argument(
+        "user-agent=Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; AcooBrowser; .NET CLR 1.1.4322; .NET CLR 2.0.50727)")
+    # options.add_argument('--no-sandbox')
+    # options.add_argument('--disable-dev-shm-usage')
+    # options.add_argument("--headless")
+    # 加载驱动程序
+    driver = webdriver.Chrome(options=options)
+    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+        "source": """
+                                Object.defineProperty(navigator, 'webdriver', {
+                                get: () => undefined
+                                })
+                            """
+    })
+    return driver
 
 #获取html文本
-def get_html(url):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36",
-    }
-    ps = requests.get(url, headers=headers, verify=False).content.decode("utf-8")
-    return ps
+def get_html(url,switch):
+    if switch:
+        driver.get(url)
+
+        time.sleep(3)
+        ps = driver.page_source
+        # driver.quit()
+        return ps
+    else:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36",
+        }
+        ps = requests.get(url, headers=headers, verify=False).content.decode("utf-8")
+        return ps
 
 #获取所有a链接的路径
 def get_all_path(ps):
@@ -23,8 +53,6 @@ def get_all_path(ps):
 
     d = defaultdict(list)
     for href in hrefs:
-        # if href.text == None or href.text.strip() == '':
-        #     continue
         if 'href' not in href.attrib:
             continue
         # if href.text in [u'下一页', 'next']:
@@ -110,30 +138,40 @@ def get_best_path_by_contentnum(d):
 def get_best_path_by_total_num(d):
     best_k = 0
     best_v = 0
+
     for k, v in d.items():
-        k_xpath = k_to_xpath(k,"//text()")
-        k_txt_list = base_tree.xpath(k_xpath)
+        k_xpath = k_to_xpath(k,"/a//text()")
+        k_num = len(base_tree.xpath(k_xpath))
+        if k_num==0:
+            continue
+        k_txt_str = "".join(base_tree.xpath(k_xpath))
+        k_txt_list = re.compile("[\u4E00-\u9FA5]+").findall(k_txt_str)
         k_txt_str = "".join(k_txt_list)
+        ktxt_num = len(k_txt_str)
+        txt_a_ratio = ktxt_num/k_num
+        print(k_xpath)
         print(k_txt_str)
-        k_txt_num = len(k_txt_str)
+        print(ktxt_num)
+        print(txt_a_ratio)
+        print("------------------")
 
-        if k_txt_num > best_v:
+        if txt_a_ratio > best_v:
+            print(best_v,"123")
             best_k = k
-            best_v = k_txt_num
+            best_v = txt_a_ratio
 
-    for e in d[best_k]:
-        print(e[0], e[1])
 
+    print(best_v)
     end_path = k_to_xpath(best_k,"/a/@href")
-    print("best_path")
-    print(end_path)
+    print("best_xpath  is   ",end_path)
     return end_path
 
 def go():
     d = get_all_path(base_ps)    #获取所有a链接路径
     if not d:   #处理url 404等错误
         print("没有获取到数据")
-        return
+        writedata = base_url+"没有获取到数据"+"\n"
+        return writedata
     best_path = get_best_path_by_total_num(d)    #获取最优路径
 
 
@@ -141,9 +179,26 @@ def go():
     linelist = base_tree.xpath(best_path)
     print(linelist)
     print(len(linelist))
+    writedata = base_url+"------"+best_path+"------"+str(linelist)+"\n"
+    return writedata
+
 
 if __name__=="__main__":
-    base_url = "http://www.gd.gov.cn/zwgk/gsgg/index.html"
-    base_ps = get_html(base_url)  #获取html文本
-    base_tree = etree.HTML(base_ps)
-    go()
+    end_file = open("测试结果.txt", "wb")
+    ceshifile = open("123.txt","rb")
+    urllist = ceshifile.readlines()
+    driver = get_driver()
+    for ii in urllist:
+        ii_url = ii.decode("utf-8")
+        base_url = ii_url.strip()
+        print(base_url)
+
+        try:
+            base_ps = get_html(base_url, True)  # 获取html文本
+            base_tree = etree.HTML(base_ps)
+            writedata = go()
+        except:
+            writedata = base_url+"没有获取到数据"+"\n"
+        end_file.write(writedata.encode("utf-8"))
+        end_file.flush()
+    end_file.close()
