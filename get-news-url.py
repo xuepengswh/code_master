@@ -6,6 +6,7 @@ from collections import defaultdict
 import re
 from urllib.parse import urljoin
 import sys
+import time
 
 #获取html文本
 def get_html(url):
@@ -46,11 +47,11 @@ def get_all_path(ps):
     return d
 
 #从k值变成xpath字符串
-def k_to_xpath(k):
+def k_to_xpath(k,endstr):
     best_k = k.split()
     best_k.reverse()
     best_path = "".join(best_k)
-    end_path = best_path + "/a/@href"
+    end_path = best_path + endstr
     return end_path
 
 #获取网页的汉字数量和网页链接数a的比值
@@ -72,7 +73,7 @@ def get_num_ratio(ps):
 
 # 根据k获取网页txt数量
 def k_to_txtnum(k):
-    xpath_str = k_to_xpath(k)
+    xpath_str = k_to_xpath(k,"/a/@href")
     mytree = etree.HTML(base_ps)
     url = mytree.xpath(xpath_str)
     if not url: #空列表
@@ -87,7 +88,7 @@ def k_to_txtnum(k):
     return num
 
 #根据文章字数数量确定链接路径
-def get_best_path(d):
+def get_best_path_by_contentnum(d):
     # for k, v in d.items():
     #     print(k, v)
     best_k = 0
@@ -101,7 +102,29 @@ def get_best_path(d):
     for e in d[best_k]:
         print(e[0], e[1])
 
-    end_path = k_to_xpath(best_k)
+    end_path = k_to_xpath(best_k,"/a/@href")
+    print("best_path")
+    print(end_path)
+    return end_path
+
+def get_best_path_by_total_num(d):
+    best_k = 0
+    best_v = 0
+    for k, v in d.items():
+        k_xpath = k_to_xpath(k,"//text()")
+        k_txt_list = base_tree.xpath(k_xpath)
+        k_txt_str = "".join(k_txt_list)
+        print(k_txt_str)
+        k_txt_num = len(k_txt_str)
+
+        if k_txt_num > best_v:
+            best_k = k
+            best_v = k_txt_num
+
+    for e in d[best_k]:
+        print(e[0], e[1])
+
+    end_path = k_to_xpath(best_k,"/a/@href")
     print("best_path")
     print(end_path)
     return end_path
@@ -111,15 +134,16 @@ def go():
     if not d:   #处理url 404等错误
         print("没有获取到数据")
         return
-    best_path = get_best_path(d)    #获取最优路径
-    mytree = etree.HTML(base_ps)
+    best_path = get_best_path_by_total_num(d)    #获取最优路径
+
 
     print('*********')
-    linelist = mytree.xpath(best_path)
+    linelist = base_tree.xpath(best_path)
     print(linelist)
     print(len(linelist))
 
 if __name__=="__main__":
-    base_url = "http://service.shanghai.gov.cn/XingZhengWenDangKu/XZGFList.aspx?testpara=0&kw=&issueDate_userprop8=&status=0&departid=&wenhao=&issueDate_userprop8_end=&excuteDate=&excuteDate_end=&closeDate=&closeDate_end=&departtypename=&typename=&zhutitypename=&zhuti=&currentPage=1&pagesize=10"
+    base_url = "http://www.gd.gov.cn/zwgk/gsgg/index.html"
     base_ps = get_html(base_url)  #获取html文本
+    base_tree = etree.HTML(base_ps)
     go()
