@@ -150,7 +150,7 @@ def get_best_path_by_total_num(d):
         if k_num==0:
             continue
         k_txt_str = "".join(base_tree.xpath(k_xpath))
-        k_txt_list = re.compile("[\u4E00-\u9FA5]+").findall(k_txt_str)
+        k_txt_list = re.compile("\w+").findall(k_txt_str)
         k_txt_str = "".join(k_txt_list)
         ktxt_num = len(k_txt_str)
         txt_a_ratio = ktxt_num/k_num
@@ -192,8 +192,8 @@ def go1():
     global base_url
     global base_tree
     global base_ps
-    end_file = open("测试结果3.txt", "wb")
-    ceshifile = open("123.txt", "rb")
+    end_file = open("测试结果4.txt", "wb")
+    ceshifile = open("456.txt", "rb")
     urllist = ceshifile.readlines()
     driver = get_driver()
     for ii in urllist:
@@ -222,4 +222,4 @@ def go2():
     writedata = go()
 
 if __name__=="__main__":
-    go2()
+    go1()
