@@ -60,8 +60,13 @@ def get_all_path(ps):
         parent = href.xpath('..')
         path = []
         # 递归调用父节点，得到路径
+        i=0
         while (len(parent) > 0):
-            class_name = parent[0].attrib.get('class')   #改动1
+            if i==0:
+                class_name=False
+            else:
+                class_name = parent[0].attrib.get('class')
+            i+=1
             tag_name = parent[0].tag
             if class_name and class_name.find(" ")==-1:
                 path.append("/"+tag_name+"[@class='"+class_name+"']")
@@ -182,23 +187,39 @@ def go():
     writedata = base_url+"------"+best_path+"------"+str(linelist)+"\n"
     return writedata
 
-
-if __name__=="__main__":
-    end_file = open("测试结果.txt", "wb")
-    ceshifile = open("123.txt","rb")
+def go1():
+    global driver
+    global base_url
+    global base_tree
+    global base_ps
+    end_file = open("测试结果3.txt", "wb")
+    ceshifile = open("123.txt", "rb")
     urllist = ceshifile.readlines()
     driver = get_driver()
     for ii in urllist:
         ii_url = ii.decode("utf-8")
         base_url = ii_url.strip()
         print(base_url)
-
         try:
             base_ps = get_html(base_url, True)  # 获取html文本
             base_tree = etree.HTML(base_ps)
             writedata = go()
         except:
-            writedata = base_url+"没有获取到数据"+"\n"
+            writedata = base_url + "没有获取到数据" + "\n"
         end_file.write(writedata.encode("utf-8"))
         end_file.flush()
     end_file.close()
+
+def go2():
+    global driver
+    global base_url
+    global base_tree
+    global base_ps
+    driver = get_driver()
+    base_url = "http://www.moe.gov.cn/jyb_xxgk/moe_1777/moe_1779/"
+    base_ps = get_html(base_url, True)  # 获取html文本
+    base_tree = etree.HTML(base_ps)
+    writedata = go()
+
+if __name__=="__main__":
+    go2()
