@@ -175,6 +175,7 @@ def go1():
         end_file.write(writedata.encode("utf-8"))
         end_file.flush()
     end_file.close()
+    ceshifile.close()
 
 def go2():
     global driver
@@ -185,7 +186,7 @@ def go2():
     driver = get_driver()
 
 
-    base_url = "http://www.sara.gov.cn/flfg/index.jhtml"
+    base_url = "http://www.neac.gov.cn/seac/xxgk/zcjd/index.shtml"
     print(base_url)
     try:
         base_ps = get_html(base_url, True)  # 获取html文本
@@ -195,8 +196,6 @@ def go2():
     except:
         writedata = base_url + "没有获取到数据" + "\n"
         print(writedata)
-
-
 
 if __name__=="__main__":
     go2()
