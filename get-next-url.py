@@ -87,6 +87,20 @@ def k_to_xpath(k,endstr):
     end_path = best_path + endstr
     return end_path
 
+#根据下一页选取最佳路径
+def get_path_by_nextpage(d):
+    for k, v in d.items():
+        k_xpath = k_to_xpath(k, "/a//text()")
+        k_txt_list = base_tree.xpath(k_xpath)
+        if len(k_txt_list)==0:
+            continue
+        nextpage_num = 0 #记录a的文本为下一页的链接
+        for ii in k_txt_list:
+            k_txt = ii.strip()
+            if k_txt=="下一页" or k_txt=="下页" or k_txt=="下":
+                nextpage_num+=1
+                return k
+    return False
 
 def get_pagelisturl_xpath(d):
     best_k = 0
@@ -97,7 +111,7 @@ def get_pagelisturl_xpath(d):
         if len(k_txt_list)==0:
             continue
 
-        page_url_num = 0
+        page_url_num = 0    #记录a的txt是1到20之间的数量
         for k_txt in k_txt_list:
             try:
                 k_txt_num = int(k_txt.strip())
@@ -106,13 +120,15 @@ def get_pagelisturl_xpath(d):
             except:
                 continue
 
-        ratio = page_url_num/len(k_txt_list)
+        ratio = page_url_num/len(k_txt_list)    #满足的a数量和a的总数量的比值
         if ratio>best_v:
             best_v=ratio
             best_k=k
 
     if best_k==0:
-        return False
+        best_k = get_path_by_nextpage(d)    #根据下一页获取xpath
+        if not best_k:
+            return False
     end_path = k_to_xpath(best_k, "/a/@href")
 
     return end_path
@@ -142,7 +158,7 @@ def go1():
     global base_url
     global base_tree
     global base_ps
-    end_file = open("测试翻页的xpath.txt", "wb")
+    end_file = open("测试翻页的xpath2.0.txt", "wb")
     ceshifile = open("webtype是0的url.txt", "rb")
     urllist = ceshifile.readlines()
     driver = get_driver()
@@ -160,5 +176,27 @@ def go1():
         end_file.flush()
     end_file.close()
 
+def go2():
+    global driver
+    global base_url
+    global base_tree
+    global base_ps
+
+    driver = get_driver()
+
+
+    base_url = "http://www.sara.gov.cn/flfg/index.jhtml"
+    print(base_url)
+    try:
+        base_ps = get_html(base_url, True)  # 获取html文本
+        base_tree = etree.HTML(base_ps)
+        writedata = go()
+        print(writedata)
+    except:
+        writedata = base_url + "没有获取到数据" + "\n"
+        print(writedata)
+
+
+
 if __name__=="__main__":
-    go1()
+    go2()
