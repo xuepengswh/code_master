@@ -1,0 +1,8 @@
+import logging
+logging.basicConfig(format='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s',
+                    level=logging.DEBUG,
+                    filename="./log/判断完成状态.log")
+
+
+logging.info(ObjectId(mongo_id))
+logging.info("将此数据更改为完成状态")
