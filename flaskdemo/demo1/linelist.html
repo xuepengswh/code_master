@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>获取新闻链接的xpath</title>
+</head>
+<body>
+
+<form method="post">
+    <label>网址:</label><input type="text" name="url"><br>
+    <label>是否使用selenium</label>
+        <select  name="selenium">
+               <option value=false>否</option>
+               <option value=true>是</option>
+        </select><br>
+    <br>
+    <input type="submit" value="默认方式" onclick="javascript: form.action='/aver';">
+    <input type="submit" value="链接的文本总数" onclick="javascript: form.action='/total';"><br>
+
+    {#使用遍历获取闪现的消息#}
+    {% for message in get_flashed_messages() %}
+        {{ message }}
+    {% endfor %}
+</form>
+
+
+{{xpath_str}}<br>
+{% for tt in text %}
+{{tt}}<br>
+{% endfor %}
+{% for tt in href %}
+{{tt}}<br>
+{% endfor %}
+
+
+
+</body>
+</html>
